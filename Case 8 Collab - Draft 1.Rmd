@@ -1,0 +1,154 @@
+---
+title: "ADSC Case 8 Report"
+author: "Mint Thai - T00762325 & Vishvam Sanghadiya - T00764166 & Gaurav Sharma - T00750061"
+date: "2024-11-10"
+output: pdf_document
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+## Introduction
+
+This report provides an analysis to (1) identify key factors influencing an individual's salary and (2) draw meaningful conclusions about how these factors impact salaries using regression modeling techniques. The Wages dataset has ten explanatory variables and one dependent variable, salary. The methodology section outlines the steps taken to build the regression models, including selecting relevant variables and handling potential multicollinearity. The results section presents the outcomes of the regression models and the findings from the diagnostic tests. Finally, the conclusion section provides insights into how salaries are influenced by these variables, highlights which variables significantly impact salary, and explains the potential interaction effects among these variables.
+
+## Methodology
+
+**[TO-DO]: Write out the beginning section of the Methodology. Include the following points:**
+
+1.  **The metric we look at to determine this is the best-fitting regression model (Adjusted R-squared, P-value)**
+
+2.  **Whatever else you feel appropriate for this section – feel free to write and include in this**
+
+3.  ***Model development process -- Mint - done***
+
+```{r data import and cleaning, echo=FALSE, results='hide'}
+
+#import data
+
+Wages <- read.csv("Wages.csv")
+
+#data cleaning, change categorical variables into factors
+
+Wages$Job <- factor(Wages$Job)
+levels(Wages$Job) #three type of jobs: Biologist, Data Scientist, Teacher
+
+Wages$Location <- factor(Wages$Location)
+levels(Wages$Location) #two locations: Metro, Rural
+
+Wages$Province <- factor(Wages$Province)
+levels(Wages$Province) #three provinces: Alberta, BC, Ontario
+head(Wages)
+
+```
+
+Our initial model with all numeric variables aim to observe their effects and assess the adjusted R-squared. The **Model 1 results** show an overall p-value of 2.2e-16, which is significantly less than 0.05, and an adjusted R-squared of 99%. This extremely high R-squared indicates that the included variables are highly effective at explaining an individual's salary. However, the p-value is mainly driven by the variable Salary.5, which is overpowering the other predictors and potentially causing the lack of statistical significance for other variables. As a result, we decided to remove Salary.5 from our next model.
+
+***Model 1 Results***
+
+```{r building regression models, echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+library(car)
+library(knitr)
+
+all_num_model <- lm(Salary ~ Salary.5 + FatherEducation + MotherEducation + GPA + Age + Experience + Education, data = Wages)
+all_num_summary <- summary(all_num_model)
+
+print(all_num_summary)
+```
+
+Additionally, we were interested to examine potential multicollinearity among Salary.5 and the other variables. The **Model 1 Variance Inflation Factor (VIF) test** reveals a strong correlation between the variables Age and Experience, with both having VIF values greater than the threshold of 5, indicating a high degree of multicollinearity with other predictors. To address this, we chose to remove Age from our next model.
+
+***Model 1 VIF Test***
+
+```{r echo=FALSE}
+
+vif(all_num_model) #threholds of 5 -- age, experience
+
+```
+
+After testing various combinations of variables and interaction terms, we finalized a model (**Model 2**) that includes *Experience*, *Education*, and three interaction terms: *Job\*Province, Job\*Experience*, and *Province\*Experience*. These variables were selected because they significantly contribute to explaining salary variations, and their inclusion results in a higher adjusted R-squared, indicating a better fit for the model.
+
+## Results
+
+**[TO-DO]: Interpret the Model 2 results in details. Mention the coefficient estimates, their p-values and whatever details you feel appropriate/helpful**
+
+***Model 2 Results***
+
+```{r offical model, echo=FALSE}
+
+#add interactions (job*province + job*experience + province*experience)
+model_8 <- lm(Salary ~ Experience + Education + Job*Province + Job*Experience + Province*Experience, data = Wages)
+summary(model_8) #up to 84%, almost everything is significant
+```
+
+## Conclusions
+
+**[TO-DO]: Sum up the results -- provides insights into how salaries are influenced by these variables, highlights which variables significantly impact salary, and explains the potential interaction effects among these variables.**
+
+## Appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+
+```
+
+```{r exploring models}
+
+#all numeric variables
+
+library(car)
+
+all_num_model <- lm(Salary ~ Salary.5 + FatherEducation + MotherEducation + GPA + Age + Experience + Education, data = Wages)
+summary(all_num_model)
+vif(all_num_model) #threholds of 5 -- age, experience
+
+#Age: VIF = 10.24 – This is relatively high, suggesting that Age might be highly correlated with other variables (like Experience or Salary.5), which could indicate a multicollinearity problem.
+#Experience: VIF = 10.72 – Similar to Age, this suggests that Experience is highly correlated with other predictors.
+
+all_num_model_excl_age <- lm(Salary ~ Salary.5 + FatherEducation + MotherEducation + GPA + Experience + Education, data = Wages)
+summary(all_num_model_excl_age)
+vif(all_num_model_excl_age)
+
+##Multicollinearity: Since Salary.5 is such a strong predictor, it might be causing the lack of statistical significance for other variables, as it absorbs much of the predictive power. 
+
+#salary and 5 other numeric variables (excluding Salary.5)
+model_1 <- lm(Salary ~ FatherEducation + MotherEducation + GPA + Experience + Education, data = Wages)
+summary(model_1) #only 35% explanatory power, momedu, dadedu, gpa aren't significant
+vif(model_1) #removing age, because multicorrilation with experience
+
+#experience and education only
+model_2 <- lm(Salary ~ Experience + Education, data = Wages)
+summary(model_2) #down to 31%
+vif(model_2) 
+
+#numeric (exp, edu on salary) add job in
+model_3 <- lm(Salary ~ Experience + Education + Job, data = Wages)
+summary(model_3) #up 46%
+vif(model_3) 
+
+#numeric (exp, edu on salary) add job and location in -- no change
+model_4 <- lm(Salary ~ Experience + Education + Job + relevel(Location,"Metro"), data = Wages)
+summary(model_4) #up 46%
+vif(model_4) 
+
+#numeric (exp, edu on salary) add job in, no location, add province
+model_5 <- lm(Salary ~ Experience + Education + Job + Province, data = Wages)
+summary(model_5) #up 60%, all significant
+vif(model_5) 
+
+#add interactions
+model_6<- lm(Salary ~ Experience + Education + Job + Province + Job*Province, data = Wages)
+summary(model_6) #up to 80%, almost everything is significant
+
+#add interactions (job*province + job*experience)
+model_7 <- lm(Salary ~ Experience + Education + Job + Province + Job*Province + Job*Experience, data = Wages)
+summary(model_7) #up to 82%, almost everything is significant
+
+
+#add interactions (job*province + job*experience + province*experience)
+model_8 <- lm(Salary ~ Experience + Education + Job + Province + Job*Province + Job*Experience + Province*Experience, data = Wages)
+summary(model_8) #up to 84%, almost everything is significant
+
+
+```
