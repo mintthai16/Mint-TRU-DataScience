@@ -53,9 +53,8 @@ library(car)
 library(knitr)
 
 all_num_model <- lm(Salary ~ Salary.5 + FatherEducation + MotherEducation + GPA + Age + Experience + Education, data = Wages)
-all_num_summary <- summary(all_num_model)
+summary(all_num_model)
 
-print(all_num_summary)
 ```
 
 Additionally, we were interested to examine potential multicollinearity among Salary.5 and the other variables. The **Model 1 Variance Inflation Factor (VIF) test** reveals a strong correlation between the variables Age and Experience, with both having VIF values greater than the threshold of 5, indicating a high degree of multicollinearity with other predictors. To address this, we chose to remove Age from our next model.
