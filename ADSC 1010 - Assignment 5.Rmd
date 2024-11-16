@@ -1,0 +1,54 @@
+---
+title: "ADSC 1010 - Assignment 5"
+author: "Mint Thai"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+## Question 1
+
+**A**
+
+-   What is the purpose of visualization?
+
+-   Which visualizations should you use to examine the following:
+
+    -   One continuous variable:
+
+    -   Two continuous variables:
+
+    -   One categorical variable:
+
+    -   One continuous variable and one categorical variable:
+
+-   What are the following colour scales best used for?:
+
+    -   Sequential:
+
+    -   Diverging:
+
+    -   Multi-hue:
+
+-   What are aesthetics used for in visualisations?
+
+**B**
+
+-   What does the Grammar of Graphics help us with?
+
+-   What operator do we use to add layers to:
+
+    -   ggplot objects
+
+    -   plotly objects salmon example
+
+    -   leaflet objects
+
+-   What are the two kinds static of maps we have covered in class and what are they useful for?
+
+## Question 2
+
+**Maps**
+
+## Question 3
+
+## Question 4
